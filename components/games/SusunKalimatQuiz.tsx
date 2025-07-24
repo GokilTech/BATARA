@@ -25,30 +25,41 @@ const quizData = {
             id: 1,
             sentence: "Abdi Elis, nami anjeun saha?",
             image: require('@/assets/images/avatar.png'),
-            correctAnswer: "I Am Elis , What's Your Name ?",
-            wordBank: ["Your", "Elis", "I", "Name", "Am", "What's", "?"], // Seharusnya ini di-generate & diacak
+            correctAnswer: "I Am Elis, What's Your Name ?",
+            wordBank: ["Your", "Elis,", "I", "Name", "Am", "What's", "?"],
         },
     ],
 };
 
-const SegmentedProgressBar = ({ current, total }: ProgressBarProps) => { /* ... (komponen progress bar sama seperti sebelumnya) ... */ };
+const SegmentedProgressBar = ({ current, total }: ProgressBarProps) => {
+    return (
+        <View className="flex-row flex-1 space-x-1 mx-4">
+            {[...Array(total)].map((_, index) => (
+                <View
+                    key={index}
+                    className={`flex-1 h-2 rounded-full ${index < current ? 'bg-blue-500' : 'bg-gray-200'}`}
+                />
+            ))}
+        </View>
+    );
+};
 
 // --- KOMPONEN UTAMA ---
-export default function SusunKalimatQuiz({params}: QuizPageProps) {
+export default function SusunKalimatQuiz({ params }: QuizPageProps) {
     const router = useRouter();
 
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const currentQuestion = quizData.questions[currentQuestionIndex];
-    
+
     // --- STATE MANAGEMENT untuk Game ---
     // State untuk kata-kata di slot jawaban
     const [answerSlots, setAnswerSlots] = useState<string[]>([]);
     // State untuk kata-kata di bank kata
     const [wordBank, setWordBank] = useState<string[]>([]);
-    
+
     const [isAnswerChecked, setIsAnswerChecked] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
-    
+
     // Inisialisasi/acak kata saat komponen pertama kali dimuat
     useEffect(() => {
         const shuffled = [...currentQuestion.wordBank].sort(() => Math.random() - 0.5);
@@ -66,19 +77,30 @@ export default function SusunKalimatQuiz({params}: QuizPageProps) {
         setAnswerSlots(answerSlots.filter((_, i) => i !== index));
         setWordBank([...wordBank, word]);
     };
-    
+
     const handleCheckAnswer = () => {
         const userAnswer = answerSlots.join(" ");
         setIsCorrect(userAnswer === currentQuestion.correctAnswer);
         setIsAnswerChecked(true);
     };
 
-    const handleNextQuestion = () => { /* ... (logic next question sama seperti sebelumnya) ... */ };
+    const handleNextQuestion = () => {
+        if (currentQuestionIndex < quizData.questions.length - 1) {
+            setCurrentQuestionIndex(currentQuestionIndex + 1);
+        } else {
+            router.back();
+        }
+    };
 
     return (
         <SafeAreaView className="flex-1 bg-white">
-            {/* Header (Progress Bar & Back) */}
-            {/* ... (komponen header sama seperti sebelumnya) ... */}
+            {/* Header Manual */}
+            <View className="p-4 flex-row items-center">
+                <TouchableOpacity onPress={() => router.back()} className="p-2">
+                    <Feather name="arrow-left" size={24} color="gray" />
+                </TouchableOpacity>
+                <SegmentedProgressBar current={currentQuestionIndex + 1} total={quizData.totalQuestions} />
+            </View>
 
             <View className="flex-1 p-6 justify-between">
                 {/* Question Area */}
@@ -115,9 +137,32 @@ export default function SusunKalimatQuiz({params}: QuizPageProps) {
 
             {/* Footer: Check Button atau Feedback Panel */}
             {isAnswerChecked ? (
-                 <View className={`p-6 rounded-t-2xl ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
-                    {/* ... (Feedback Panel sama seperti sebelumnya, sesuaikan teks) ... */}
-                 </View>
+                <View className={`p-6 rounded-t-2xl ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
+                    {isAnswerChecked ? (
+                        <View className={`p-6 rounded-t-2xl ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
+                            <Text className={`text-2xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
+                                {isCorrect ? "That's Right!" : "Ups.. That not quite right"}
+                            </Text>
+                            <Text className="text-base text-gray-700 mt-1">Answer : {currentQuestion.correctAnswer}</Text>
+                            <TouchableOpacity
+                                onPress={handleNextQuestion}
+                                className={`py-4 rounded-full mt-4 ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`}
+                            >
+                                <Text className="text-white text-center font-bold text-lg">Next Question</Text>
+                            </TouchableOpacity>
+                        </View>
+                    ) : (
+                        <View className="p-6">
+                            <TouchableOpacity
+                                onPress={handleCheckAnswer}
+                                disabled={answerSlots.length === 0}
+                                className={`py-4 rounded-full ${answerSlots.length === 0 ? 'bg-gray-300' : 'bg-[#003B46]'}`}
+                            >
+                                <Text className="text-white text-center font-bold text-lg">Check</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
             ) : (
                 <View className="p-6">
                     <TouchableOpacity
