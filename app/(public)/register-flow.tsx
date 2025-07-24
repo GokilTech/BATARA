@@ -39,9 +39,9 @@ export default function RegisterFlowScreen() {
 
     // 3. Terapkan tipe 'Checklist' ke blueprint kita
     const steps: StepConfig[] = [
-        { title: "How old are you?", value: age, setValue: setAge, placeholder: "21", keyboardType: "numeric", nextLabel: "Next" },
+        { title: "How old are you?", value: age, setValue: setAge, placeholder: "21", keyboardType: "default", nextLabel: "Next" },
         { title: "What is your name?", value: name, setValue: setName, placeholder: "John Doe", keyboardType: "default", nextLabel: "Next" },
-        { title: "What is your email, King Akhdan?", value: email, setValue: setEmail, placeholder: "john.doe@mail.com", keyboardType: "email-address", nextLabel: "Next" },
+        { title: `What is your email, ${name}?`, value: email, setValue: setEmail, placeholder: "john.doe@mail.com", keyboardType: "default", nextLabel: "Next" },
         { title: "Set up your password", value: password, setValue: setPassword, placeholder: "********", keyboardType: "default", nextLabel: "Start" },
     ];
 
@@ -109,7 +109,7 @@ if (isNaN(parsedAge)) {
                                 placeholder={currentStep.placeholder}
                                 keyboardType={currentStep.keyboardType} // <-- SEKARANG INI AMAN!
                                 secureTextEntry={currentStep.title.includes("password") && !isPasswordVisible}
-                                className="w-full bg-white p-4 rounded-full border-2 border-primary text-center text-lg"
+                                className="w-full bg-white p-4 rounded-full border-2 border-primary justify-center items-center text-center"
                             />
                             {currentStep.title.includes("password") && (
                                 <TouchableOpacity

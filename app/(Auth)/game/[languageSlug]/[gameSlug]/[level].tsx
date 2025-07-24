@@ -22,7 +22,7 @@ export default function GameLevelPage() {
     if (gameSlug === 'tebak_gambar') {
         return <TebakGambarQuiz params={params} />;
     }
-    
+
     if (gameSlug === 'kartu_kata') {
         return <KartuKataQuiz params={params} />;
     }

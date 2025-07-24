@@ -77,7 +77,7 @@ export default function SearchPage() {
                                 placeholder="Search Language..."
                                 value={searchQuery}
                                 onChangeText={setSearchQuery}
-                                className="flex-1 ml-3 text-base"
+                                className="flex-1 ml-3"
                             />
                         </View>
                         <View className="mt-6 flex-row items-center">

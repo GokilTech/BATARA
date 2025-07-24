@@ -17,7 +17,6 @@ type QuizPageProps = {
     }
 }
 
-
 // --- DUMMY DATA UNTUK KUIS TEBAK GAMBAR ---
 const quiz = {
     totalQuestions: 5,

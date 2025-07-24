@@ -75,7 +75,7 @@ export default function LoginPage() {
                                 placeholder="example@gmail.com"
                                 keyboardType="email-address"
                                 autoCapitalize="none"
-                                className={`bg-white p-4 rounded-xl border-2 text-base ${emailError ? 'border-red-500' : 'border-gray-200'}`}
+                                className={`bg-white p-4 rounded-xl border-2 ${emailError ? 'border-red-500' : 'border-gray-200'}`}
                             />
                             {emailError && <Text className="text-red-500 mt-1">{emailError}</Text>}
                         </View>
@@ -89,7 +89,7 @@ export default function LoginPage() {
                                     onChangeText={setPassword}
                                     placeholder="********"
                                     secureTextEntry={!isPasswordVisible} // Logik show/hide password
-                                    className="flex-1 p-4 text-base"
+                                    className="flex-1 p-4"
                                 />
                                 <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)} className="p-4">
                                     <Feather name={isPasswordVisible ? "eye" : "eye-off"} size={20} color="gray" />
