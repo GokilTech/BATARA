@@ -115,7 +115,6 @@ export default function ProfilePage() {
                 </View>
             </View>
 
-            <ScrollView showsVerticalScrollIndicator={false}>
                 {/* --- MENU CARDS SECTION --- */}
                 <View className="p-6 space-y-6 gap-4">
                     {/* Dashboard Card */}
@@ -157,7 +156,6 @@ export default function ProfilePage() {
                         </View>
                     </View>
                 </View>
-            </ScrollView>
         </SafeAreaView>
     );
 }
