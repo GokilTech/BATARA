@@ -6,6 +6,7 @@ import { useLocalSearchParams, Stack } from 'expo-router';
 // Import semua komponen game lo
 import TebakGambarQuiz from '@/components/games/TebakGambarQuiz';
 import KartuKataQuiz from '@/components/games/KartuKataQuiz';
+import SusunKalimatQuiz from '@/components/games/SusunKalimatQuiz';
 
 export default function GameLevelPage() {
     // Kita ambil SEMUA params yang relevan dari URL
@@ -26,6 +27,11 @@ export default function GameLevelPage() {
     if (gameSlug === 'kartu_kata') {
         return <KartuKataQuiz params={params} />;
     }
+
+    if (gameSlug === 'susun_kalimat') {
+        return <SusunKalimatQuiz params={params} />;
+    }
+
     return (
         <View className="flex-1 justify-center items-center">
             <Text>Game "{gameSlug}" not found.</Text>
