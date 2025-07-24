@@ -15,7 +15,6 @@ export default function RegisterScreen() {
             {/* Bagian Header Biru */}
             <View
                 className="h-2/5 bg-primary items-center justify-center p-8"
-                // 4. INI TRIKNYA!
                 style={{ paddingTop: top, marginTop: -top }}
             >
                 <Image
