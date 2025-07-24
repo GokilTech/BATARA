@@ -105,7 +105,7 @@ export default function HomePage() {
 
           <Image
             source={require("../../../assets/images/header.png")}
-            className="w-40 h-44 mr-[-10px]"
+            className="w-[216] h-[183] mr-[-30px]"
           />
         </View>
       </View>
