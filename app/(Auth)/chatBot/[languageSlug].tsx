@@ -38,7 +38,7 @@ export default function ChatPage() {
     const userMessage: Message = { role: "user", content: input };
     const newMessages = [...messages, userMessage];
     setMessages(newMessages);
-    const currentInput = input; // Simpan input saat ini sebelum di-reset
+    const currentInput = input;
     console.log("Sending message:", currentInput);
     setInput("");
     setLoading(true);

@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Feather } from "@expo/vector-icons";
-import { Link, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
+import { Link, Stack, useFocusEffect, useLocalSearchParams, Href } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -137,17 +137,30 @@ export default function LearningPage() {
               const isCompleted =
                 nextLevel > module.total_lessons && module.total_lessons > 0;
 
+              // --- INI DIA LOGIC ROUTING PINTARNYA ---
+              let hrefConfig: Href;
+
+              if (module.game_slug === 'ngobrol_ai') {
+                // JIKA game-nya adalah chatbot...
+                // Arahkan ke rumah chatbot
+                hrefConfig = {
+                  pathname: './chatbot/[languageSlug]',
+                  params: { languageSlug }
+                };
+              } else {
+                // JIKA game-nya tipe lain (tebak_gambar, dll)...
+                // Arahkan ke rumah game biasa
+                hrefConfig = {
+                  pathname: '/game/[languageSlug]/[gameSlug]/[level]',
+                  params: { languageSlug, gameSlug: module.game_slug, level: nextLevel }
+                };
+              }
+
+
               return (
                 <Link
                   key={module.game_id}
-                  href={{
-                    pathname: "/game/ngobrol_ai/[languageSlug]/[level]",
-                    params: {
-                      gameSlug: module.game_slug,
-                      languageSlug: languageSlug,
-                      level: nextLevel,
-                    },
-                  }}
+                  href={hrefConfig}
                   asChild
                 >
                   <TouchableOpacity style={styles.card}>
