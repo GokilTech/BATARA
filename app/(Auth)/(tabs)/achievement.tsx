@@ -24,7 +24,7 @@ const StarRating = ({ rating, totalStars = 5 }: StarRatingProps) => {
 // --- DUMMY DATA ---
 const achievements = [
     { id: 1, title: "Studious", desc: "You have completed this lesson 10 times.", icon: "trophy", rating: 3, color: "bg-blue-400" },
-    { id: 2, title: "Quickie", desc: "You have completed this quiz in less than 3 minutes, 10 times.", icon: "timer", rating: 4, color: "bg-orange-400" },
+    { id: 2, title: "Quickie", desc: "You have completed this quiz in less than 3 minutes, 10 times.", icon: "clock", rating: 4, color: "bg-orange-400" },
     { id: 3, title: "Ambitious", desc: "You have achieved 15 milestones.", icon: "ribbon", rating: 2, color: "bg-teal-500" },
     { id: 4, title: "Perfectionist", desc: "You have scored 100% on quizzes 20 times.", icon: "star", rating: 5, color: "bg-indigo-500" },
 ];

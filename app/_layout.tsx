@@ -10,6 +10,11 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AuthProvider, useAuth } from "../context/AuthContext"; // Tambahkan import ini
 
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from 'react-native-reanimated';
+
 import "./globals.css";
 
 const InitialLayout = () => {
@@ -40,6 +45,11 @@ const InitialLayout = () => {
 
   return <Stack screenOptions={{ headerShown: false }} />;
 };
+
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, // Reanimated runs in strict mode by default
+});
 
 // Ini adalah Root Layout yang sebenarnya
 

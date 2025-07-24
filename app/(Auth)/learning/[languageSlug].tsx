@@ -140,7 +140,6 @@ export default function LearningPage() {
               return (
                 <Link
                   key={module.game_id}
-                  // ✅ GUNAKAN PENDEKATAN OBJEK INI
                   href={{
                     pathname: "/game/ngobrol_ai/[languageSlug]/[level]",
                     params: {
