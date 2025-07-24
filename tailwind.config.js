@@ -6,7 +6,9 @@ module.exports = {
     extend: {
       colors: {
         primary: '#133E87',
-        brandGreen: '#27AE60'
+        brandGreen: '#27AE60',
+        danger: "#FF2442",
+        warning: "#FF683A"
       }
     },
   },

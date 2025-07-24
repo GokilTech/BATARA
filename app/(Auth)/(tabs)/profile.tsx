@@ -28,7 +28,7 @@ const dashboardItems: DashboardItem[] = [
         title: "Privacy",
         color: "bg-gray-800",
         badgeText: "Action Needed",
-        badgeColor: "bg-red-500"
+        badgeColor: "bg-warning"
     },
 ];
 
