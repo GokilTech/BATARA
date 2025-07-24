@@ -37,7 +37,7 @@ export default function RegisterScreen() {
 
             {/* Bagian Tombol Bawah */}
             <View className="flex-row justify-between items-center p-8">
-                <TouchableOpacity onPress={() => router.back()}>
+                <TouchableOpacity onPress={() => router.back()} className="py-4 px-10">
                     <Text className="text-lg font-semibold text-gray-500">Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
