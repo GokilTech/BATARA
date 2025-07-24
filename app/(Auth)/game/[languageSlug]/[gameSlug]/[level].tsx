@@ -9,7 +9,6 @@ import KartuKataQuiz from '@/components/games/KartuKataQuiz';
 import SusunKalimatQuiz from '@/components/games/SusunKalimatQuiz';
 
 export default function GameLevelPage() {
-    // Kita ambil SEMUA params yang relevan dari URL
     const params = useLocalSearchParams<{ 
         languageSlug: string;
         gameSlug: string;
