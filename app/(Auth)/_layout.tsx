@@ -7,7 +7,7 @@ export default function AuthLayout() {
         <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
-                name="learning/[languageId]"
+                name="learning/[languageSlug]"
                 options={{
                     headerTitle: "",
                     headerTransparent: true,

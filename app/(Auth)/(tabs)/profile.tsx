@@ -1,10 +1,12 @@
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
-import React, {useState, useEffect, useCallback} from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Image, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from "react-native";
-import {useFocusEffect} from "expo-router";
-import {useAuth} from "@/context/AuthContext";
-import {supabase} from "@/lib/supabase";
+import { useFocusEffect } from "expo-router";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "@/lib/supabase";
+
+
 
 type DashboardItem = {
     id: number;
@@ -17,8 +19,8 @@ type DashboardItem = {
 };
 
 const dashboardItems: DashboardItem[] = [
-    {id: 1, icon: "settings-sharp", title: "Settings", color: "bg-blue-500"},
-    {id: 2, icon: "trophy", title: "Achievements", color: "bg-orange-400", badgeText: "2 New"},
+    { id: 1, icon: "settings-sharp", title: "Settings", color: "bg-blue-500" },
+    { id: 2, icon: "trophy", title: "Achievements", color: "bg-orange-400", badgeText: "2 New" },
     {
         id: 3,
         icon: "lock-closed",
@@ -64,18 +66,18 @@ export default function ProfilePage() {
     }
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <Stack.Screen options={{headerShown: false}}/>
+            <SafeAreaView className="flex-1 bg-gray-50">
+                <Stack.Screen options={{ headerShown: false}} />
                 {/* --- HEADER SECTION --- */}
                 <View className="bg-primary rounded-b-[40px] pt-4 pb-16">
                     {/* Top Nav */}
                     <View className="flex-row items-center justify-between px-4">
                         <TouchableOpacity onPress={() => router.back()} className="p-2">
-                            <Feather name="arrow-left" size={24} color="white"/>
+                            <Feather name="arrow-left" size={24} color="white" />
                         </TouchableOpacity>
                         <Text className="text-xl font-bold text-white">My Profile</Text>
                         <TouchableOpacity className="bg-white/20 p-2 rounded-full">
-                            <Feather name="menu" size={24} color="white"/>
+                            <Feather name="menu" size={24} color="white" />
                         </TouchableOpacity>
                     </View>
 
@@ -90,7 +92,7 @@ export default function ProfilePage() {
                             <Text className="text-base text-white/80">Newbie</Text>
                         </View>
                         <TouchableOpacity className="bg-white/20 p-3 rounded-full">
-                            <Feather name="edit-2" size={20} color="white"/>
+                            <Feather name="edit-2" size={20} color="white" />
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -121,7 +123,7 @@ export default function ProfilePage() {
                                 {dashboardItems.map(item => (
                                     <TouchableOpacity key={item.id} className="flex-row items-center p-2">
                                         <View className={`${item.color} p-2 rounded-full`}>
-                                            <Ionicons name={item.icon} size={20} color="white"/>
+                                            <Ionicons name={item.icon} size={20} color="white" />
                                         </View>
                                         <Text
                                             className="flex-1 ml-4 text-base font-semibold text-gray-700">{item.title}</Text>
@@ -132,7 +134,7 @@ export default function ProfilePage() {
                                             </View>
                                         )}
                                         <View className="ml-2">
-                                            <Feather name="chevron-right" size={20} color="gray"/>
+                                            <Feather name="chevron-right" size={20} color="gray" />
                                         </View>
                                     </TouchableOpacity>
                                 ))}
@@ -154,6 +156,6 @@ export default function ProfilePage() {
                         </View>
                     </View>
                 </ScrollView>
-        </SafeAreaView>
+            </SafeAreaView>
     );
 }

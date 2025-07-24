@@ -11,6 +11,9 @@ export default function TabLayout() {
                 tabBarStyle: {
                     backgroundColor: "white",
                     paddingTop: 5,
+                    borderTopWidth: 0, // Biar lebih bersih
+                    elevation: 10, // Shadow untuk Android
+                    shadowOpacity: 0.1, // Shadow untuk iOS
                 },
                 headerShown: false,
             }}
