@@ -136,7 +136,6 @@ export default function LearningPage() {
 
               if (module.game_slug === 'ngobrol_ai') {
                 hrefConfig = {
-                  pathname: '../chatBot/[languageSlug]',
                   pathname: '/chatBot/[languageSlug]',
                   params: { languageSlug }
                 };
