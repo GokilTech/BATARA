@@ -93,7 +93,7 @@ export default function LanguageDetailPage() {
                 </ImageBackground>
 
                 {/* Stats & Actions Bar */}
-                <View className="flex-row justify-around bg-white p-4 mx-6 rounded-2xl shadow-md mt-[-24px]">
+                <View className="flex-row justify-around bg-white p-4">
                     <TouchableOpacity className="items-center"><Ionicons name="people-outline" size={24} color="gray" /><Text className="text-sm">120</Text></TouchableOpacity>
                     <TouchableOpacity className="items-center"><Ionicons name="stats-chart-outline" size={24} color="gray" /><Text className="text-sm">80%</Text></TouchableOpacity>
                     <TouchableOpacity className="items-center"><Ionicons name="heart-outline" size={24} color="gray" /><Text className="text-sm">Fav</Text></TouchableOpacity>
