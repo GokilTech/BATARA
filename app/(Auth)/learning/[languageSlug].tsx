@@ -17,6 +17,7 @@ interface LessonModule {
   lesson_id: string;
   lesson_title: string;
   lesson_level: number;
+  lesson_image_url: string;
   game_id: number;
   game_name: string;
   game_slug: string;
@@ -24,7 +25,7 @@ interface LessonModule {
 }
 interface BahasaInfo {
   name: string;
-  image_url: string | null;
+  avatar_url: string | null
 }
 
 // --- Komponen Bantu ---
@@ -50,7 +51,7 @@ export default function LearningPage() {
         try {
           // Ambil info bahasa (tetap sama)
           const { data: bahasaData, error: bahasaError } = await supabase
-            .from("bahasa").select("name, image_url").eq("slug", languageSlug).single();
+            .from("bahasa").select("name, avatar_url").eq("slug", languageSlug).single();
           if (bahasaError) throw bahasaError;
           setBahasaInfo(bahasaData);
 
@@ -107,7 +108,7 @@ export default function LearningPage() {
         {/* Gambar & Judul Bahasa */}
         <View className="items-center px-6">
           <Image
-            source={ bahasaInfo.image_url ? { uri: bahasaInfo.image_url } : require("@/assets/images/sundanese_people.png") }
+            source={ bahasaInfo.avatar_url ? { uri: bahasaInfo.avatar_url } : require("@/assets/images/avatar.png") }
             className="w-48 h-48"
             resizeMode="contain"
           />
@@ -136,7 +137,7 @@ export default function LearningPage() {
                         </View>
                       </View>
                       <Image
-                        source={ require("@/assets/images/avatar.png") }
+                        source={ module.lesson_image_url ? { uri: module.lesson_image_url } : require("@/assets/images/avatar.png") }
                         className="w-24 h-24 rounded-lg"
                       />
                     </View>
