@@ -6,6 +6,7 @@ export default function AuthLayout() {
     return (
         <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="game" options={{headerShown: false}}/>
             <Stack.Screen
                 name="learning/[languageSlug]"
                 options={{
@@ -23,6 +24,7 @@ export default function AuthLayout() {
                     ),
                 }}
             />
+            <Stack.Screen name="language/[languageSlug]" options={{ headerShown: false }} />
         </Stack>
     );
 }
