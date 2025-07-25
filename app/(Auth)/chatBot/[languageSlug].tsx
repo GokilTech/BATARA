@@ -3,11 +3,13 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Modal,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 // --- TIPE DATA ---
@@ -15,6 +17,14 @@ interface StoryTurn {
   story: string;
   question: string;
   choices: { a: string; b: string; c: string };
+  answerKey: "a" | "b" | "c";
+}
+
+type Choice = {
+  text: string;
+  isCorrect: boolean;
+  explanation?: string; // Penjelasan opsional jika jawaban salah
+  nextSceneId: string; // ID scene berikutnya
 }
 
 // --- PENGATURAN OPENROUTER ---
@@ -38,16 +48,24 @@ export default function StoryGamePage() {
   const [storyHistory, setStoryHistory] = useState<string[]>([]); // Untuk menyimpan pilihan
   const [loading, setLoading] = useState(true);
 
+  const [selectedChoice, setSelectedChoice] = useState<Choice | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+
   // Fungsi untuk memanggil AI
   const getNextStoryTurn = useCallback(
-    async (lastChoice: string | null) => {
+    async (lastChoice: string | null, previousFeedback: string = "") => {
       setLoading(true);
       try {
         const lastChoiceText = lastChoice
           ? `Pilihan Terakhir Pengguna: "${lastChoice}"`
           : "Ini adalah awal cerita.";
 
-        const prompt = `Anda adalah seorang penulis cerita interaktif untuk game belajar Bahasa ${languageSlug}. 
+        const prompt = `
+${previousFeedback ? `Catatan: ${previousFeedback}` : ""}
+${lastChoiceText}
+
+Anda adalah seorang penulis cerita interaktif untuk game belajar Bahasa ${languageSlug}. 
 Tugas Anda adalah melanjutkan cerita berdasarkan profil karakter dan pilihan terakhirnya.
 Cerita harus selalu mengandung unsur budaya dari provinsi ${characterProfile.province}.
 
@@ -57,9 +75,7 @@ Profil Karakter:
 - Pekerjaan: ${characterProfile.profession}
 - Provinsi: ${characterProfile.province}
 
-${lastChoiceText}
-
-Lanjutkan cerita dalam satu paragraf singkat. Setelah itu, buatlah sebuah pertanyaan pilihan ganda tentang cerita tersebut. Pertanyaan dan 3 pilihan jawaban (A, B, C) HARUS dalam Bahasa ${languageSlug}.
+Lanjutkan cerita dalam satu paragraf singkat. Setelah itu, buatlah sebuah pertanyaan pilihan ganda tentang cerita tersebut. Pertanyaan dan 3 pilihan jawaban (A, B, C) HARUS dalam Bahasa ${languageSlug}. Sertakan juga jawaban yang benar dalam format: "answerKey": "a"/"b"/"c".
 
 RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur ini:
 {
@@ -69,7 +85,8 @@ RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur in
     "a": "Pilihan A dalam Bahasa ${languageSlug}",
     "b": "Pilihan B dalam Bahasa ${languageSlug}",
     "c": "Pilihan C dalam Bahasa ${languageSlug}"
-  }
+  },
+  "answerKey": "a"
 }`;
 
         const response = await fetch(API_URL, {
@@ -80,7 +97,7 @@ RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur in
           },
           body: JSON.stringify({
             model: "deepseek/deepseek-r1:free",
-            response_format: { type: "json_object" }, // Memaksa output JSON
+            response_format: { type: "json_object" },
             messages: [{ role: "user", content: prompt }],
           }),
         });
@@ -88,13 +105,22 @@ RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur in
         if (!response.ok) throw new Error(await response.text());
 
         const result = await response.json();
-        const aiResponse: StoryTurn = JSON.parse(
-          result.choices[0].message.content
-        );
-        setCurrentTurn(aiResponse);
+        const content = result.choices[0]?.message?.content;
+        try {
+          const aiResponse: StoryTurn = JSON.parse(content);
+          if (
+            !aiResponse.story ||
+            !aiResponse.question ||
+            !aiResponse.choices ||
+            !aiResponse.answerKey
+          )
+            throw new Error("Missing fields");
+          setCurrentTurn(aiResponse);
+        } catch (err) {
+          console.error("Invalid AI response:", content);
+        }
       } catch (error) {
         console.error("Story Game Error:", error);
-        // Tampilkan pesan error di UI
       } finally {
         setLoading(false);
       }
@@ -107,15 +133,23 @@ RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur in
     getNextStoryTurn(null); // Panggilan pertama, tidak ada pilihan sebelumnya
   }, [getNextStoryTurn]);
 
-  const handleChoice = (choice: string) => {
-    if (!currentTurn) return;
-    // Simpan interaksi ke Supabase (disarankan)
-    // ... supabase.from('story_interactions').insert(...) ...
+  const handleChoice = (choice: Choice) => {
+    console.log("User chose:", choice.text);
+    setSelectedChoice(choice);
+    setShowModal(true); // Tampilkan feedback modal
 
-    // Lanjutkan cerita
-    setStoryHistory((prev) => [...prev, choice]);
-    getNextStoryTurn(choice);
+    const feedback = choice.isCorrect
+      ? "Jawaban pengguna sebelumnya benar."
+      : `Jawaban sebelumnya salah. Jawaban yang benar adalah: "${currentTurn?.choices[currentTurn.answerKey]}"`;
+
+    setStoryHistory((prev) => [...prev, choice.text]);
+
+    // Simpan feedback untuk prompt selanjutnya
+    setTimeout(() => {
+      getNextStoryTurn(choice.text, feedback);
+    }, 1500); // Delay agar UX lebih smooth
   };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -125,45 +159,72 @@ RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur in
         <ActivityIndicator size="large" style={styles.center} />
       ) : (
         currentTurn && (
-          <View style={styles.content}>
+          <ScrollView style={styles.content}>
             <Text style={styles.storyText}>{currentTurn.story}</Text>
             <View style={styles.divider} />
             <Text style={styles.questionText}>{currentTurn.question}</Text>
 
             <View style={styles.choicesContainer}>
-              {Object.values(currentTurn.choices).map((choice, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.choiceButton,
-                    loading ? { opacity: 0.5 } : null,
-                  ]}
-                  onPress={() => handleChoice(choice)}
-                  disabled={loading}
-                >
-                  <Text style={styles.choiceText}>{choice}</Text>
-                </TouchableOpacity>
-              ))}
+              {Object.entries(currentTurn.choices).map(([key, text]) => {
+                const isCorrect = key === currentTurn.answerKey;
+                const explanation = isCorrect
+                  ? "Bagus! Jawaban kamu benar."
+                  : `Kurang tepat. Jawaban yang benar adalah: "${currentTurn.choices[currentTurn.answerKey]}"`;
+
+                const choiceObj: Choice = {
+                  text,
+                  isCorrect,
+                  explanation,
+                  nextSceneId: "ai", // Semua ke AI
+                };
+
+                return (
+                  <TouchableOpacity
+                    key={key}
+                    style={[styles.choiceButton, loading && { opacity: 0.5 }]}
+                    onPress={() => handleChoice(choiceObj)}
+                    disabled={loading}
+                  >
+                    <Text style={styles.choiceText}>{text}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
+
             {loading && <ActivityIndicator style={{ marginTop: 20 }} />}
-          </View>
+          </ScrollView>
         )
       )}
+      <Modal visible={showModal} transparent animationType="slide">
+        <View className="bg-white m-8 p-4 rounded-xl shadow-lg">
+          <Text className="text-lg font-bold mb-2">
+            {selectedChoice?.isCorrect ? "Jawaban Benar!" : "Jawaban Salah!"}
+          </Text>
+          <Text className="mb-4">{selectedChoice?.explanation}</Text>
+          <TouchableOpacity
+            style={[styles.choiceButton, loading && { opacity: 0.5 }]}
+            onPress={() => setShowModal(false)}
+            disabled={loading}
+          >
+            <Text style={styles.choiceText}>Lanjut Cerita</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 // --- STYLES ---
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F3F4F6" },
+  container: { flex: 1, backgroundColor: "#133E87" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
   content: { padding: 20, flex: 1 },
-  storyText: { fontSize: 18, lineHeight: 28, color: "#1F2937" },
+  storyText: { fontSize: 18, lineHeight: 28, color: "#ffffff" },
   divider: { height: 1, backgroundColor: "#E5E7EB", marginVertical: 20 },
   questionText: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#374151",
+    color: "#ffffff",
     textAlign: "center",
   },
   choicesContainer: { marginTop: 20 },
