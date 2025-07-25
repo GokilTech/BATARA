@@ -1,10 +1,11 @@
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Feather } from "@expo/vector-icons";
-import { Link, Stack, useFocusEffect, useLocalSearchParams, Href } from "expo-router";
+import { Link, Stack, useFocusEffect, useLocalSearchParams, Href, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  BackHandler,
   Image,
   SafeAreaView,
   ScrollView,
@@ -42,6 +43,7 @@ export default function LearningPage() {
   const [bahasaInfo, setBahasaInfo] = useState<BahasaInfo | null>(null);
   const [gameModules, setGameModules] = useState<GameModule[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter()
 
   useFocusEffect(
     useCallback(() => {
@@ -100,33 +102,33 @@ export default function LearningPage() {
 
       {/* Header Kustom (Sesuai Desain Baru) */}
       <View className="flex-row items-center justify-between p-4">
-          <TouchableOpacity className="bg-white p-2 rounded-full shadow-sm">
-              <Feather name="arrow-left" size={24} color="black" />
-          </TouchableOpacity>
-          <TouchableOpacity className="bg-white p-2 rounded-full shadow-sm">
-              <Feather name="menu" size={24} color="black" />
-          </TouchableOpacity>
+        <TouchableOpacity className="bg-white p-2 rounded-full shadow-sm" onPress={() => router.back()}>
+          <Feather name="arrow-left" size={24} color="black" />
+        </TouchableOpacity>
+        <TouchableOpacity className="bg-white p-2 rounded-full shadow-sm">
+          <Feather name="menu" size={24} color="black" />
+        </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
-        {/* Gambar & Judul Bahasa */}
-        <View className="items-center px-6">
-          <Image
-            source={
-              bahasaInfo.image_url
-                ? { uri: bahasaInfo.image_url }
-                : require("@/assets/images/sundanese_people.png") // Gambar default
-            }
-            className="w-48 h-48"
-            resizeMode="contain"
-          />
-          <Text className="text-3xl font-bold text-gray-800 mt-4 text-center">
-            Learn {bahasaInfo.name}
-          </Text>
-        </View>
+      {/* Gambar & Judul Bahasa */}
+      <View className="items-center px-6">
+        <Image
+          source={
+            bahasaInfo.image_url
+              ? { uri: bahasaInfo.image_url }
+              : require("@/assets/images/sundanese_people.png") // Gambar default
+          }
+          className="w-48 h-48"
+          resizeMode="contain"
+        />
+        <Text className="text-3xl font-bold text-gray-800 mt-4 text-center">
+          Learn {bahasaInfo.name}
+        </Text>
+      </View>
 
-        {/* Daftar Game/Modul */}
-        <View className="px-6 mt-8 space-y-4">
+      {/* Daftar Game/Modul */}
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        <View className="px-6 mt-8 space-y-4 gap-4 shadow">
           {gameModules.length > 0 ? (
             gameModules.map((module) => {
               const nextLevel = module.highest_level_completed + 1;
@@ -153,14 +155,14 @@ export default function LearningPage() {
                         <Text className="text-sm text-gray-500 mt-1">LEVEL {nextLevel}</Text>
                         <ProgressBar progress={module.progress} />
                         <View className="flex-row items-center bg-blue-100/60 self-start px-4 py-2 rounded-full mt-4">
-                            <Text className="text-sm font-bold text-blue-500">Play Now</Text>
-                            <Feather name="play-circle" size={16} color="#3b82f6" className="ml-2" />
+                          <Text className="text-sm font-bold text-blue-500">Play Now</Text>
+                          <Feather name="play-circle" size={16} color="#3b82f6" className="ml-2" />
                         </View>
                       </View>
-                      
+
                       <Image
                         source={
-                            module.game_image_url
+                          module.game_image_url
                             ? { uri: module.game_image_url }
                             : require("@/assets/images/avatar.png") // Placeholder
                         }
