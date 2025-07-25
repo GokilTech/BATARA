@@ -1,12 +1,16 @@
-import { View, Text, SafeAreaView, TouchableOpacity } from "react-native";
+import { View, Text, SafeAreaView, TouchableOpacity, ActivityIndicator, Alert } from "react-native";
 import React, { useState, useEffect } from "react";
-import { Stack, useRouter, useLocalSearchParams } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
+import { supabase } from "@/lib/supabase"; // Pastikan path ini benar
 
-type ProgressBarProps = {
-    current: number;
-    total: number;
-};
+// --- TIPE DATA (Sesuai isi JSONB di tabel 'questions') ---
+interface QuestionContent {
+    id: number;
+    question: string;
+    options: string[];
+    correctAnswer: string;
+}
 
 type QuizPageProps = {
     params: {
@@ -16,20 +20,8 @@ type QuizPageProps = {
     }
 }
 
-const quiz = {
-    totalQuestions: 5,
-    questions: [
-        {
-            id: 1,
-            question: "What's the meaning of \"Hiji\"?",
-            options: ["Empat", "Tiga", "Dua", "Satu"],
-            correctAnswer: "Satu",
-        },
-    ],
-};
-
 // --- KOMPONEN BANTU: Progress Bar ---
-const SegmentedProgressBar = ({ current, total }: ProgressBarProps) => {
+const SegmentedProgressBar = ({ current, total }: { current: number, total: number }) => {
     return (
         <View className="flex-row flex-1 space-x-1 mx-4">
             {[...Array(total)].map((_, index) => (
@@ -45,14 +37,40 @@ const SegmentedProgressBar = ({ current, total }: ProgressBarProps) => {
 // --- KOMPONEN UTAMA ---
 export default function KartuKataQuiz({ params }: QuizPageProps) {
     const router = useRouter();
+    const { languageSlug, gameSlug, level } = params;
 
     // --- STATE MANAGEMENT ---
+    const [questions, setQuestions] = useState<QuestionContent[]>([]);
+    const [loading, setLoading] = useState(true);
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [isAnswerChecked, setIsAnswerChecked] = useState(false);
     const [isCorrect, setIsCorrect] = useState(false);
 
-    const currentQuestion = quiz.questions[currentQuestionIndex];
+    // --- FETCH DATA DARI SUPABASE ---
+    useEffect(() => {
+        const fetchQuestions = async () => {
+            setLoading(true);
+            try {
+                const { data, error } = await supabase.rpc('get_questions_for_lesson', {
+                    p_language_slug: languageSlug,
+                    p_game_slug: gameSlug,
+                    p_level: Number(level)
+                });
+
+                if (error) throw error;
+                
+                setQuestions(data || []);
+            } catch (err) {
+                console.error("Error fetching questions:", err);
+                setQuestions([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchQuestions();
+    }, [languageSlug, gameSlug, level]);
 
     // --- FUNCTIONS ---
     const handleSelectAnswer = (option: string) => {
@@ -62,49 +80,67 @@ export default function KartuKataQuiz({ params }: QuizPageProps) {
     };
 
     const handleCheckAnswer = () => {
-        if (!selectedAnswer) return;
-        const correct = selectedAnswer === currentQuestion.correctAnswer;
+        if (!selectedAnswer || !questions[currentQuestionIndex]) return;
+        const correct = selectedAnswer === questions[currentQuestionIndex].correctAnswer;
         setIsCorrect(correct);
         setIsAnswerChecked(true);
     };
 
     const handleNextQuestion = () => {
-        if (currentQuestionIndex < quiz.questions.length - 1) {
+        if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
             setSelectedAnswer(null);
             setIsAnswerChecked(false);
             setIsCorrect(false);
         } else {
-            alert("Quiz Selesai!");
-            router.back(); // Kembali ke learning page setelah kuis selesai
+            Alert.alert("Quiz Selesai!", "Kamu hebat, semua soal sudah dijawab!");
+            router.back();
         }
     };
     
+    // Tampilan Loading
+    if (loading) {
+        return <SafeAreaView className="flex-1 justify-center items-center"><ActivityIndicator size="large" color="#3b82f6" /></SafeAreaView>;
+    }
+
+    // Tampilan Jika Tidak Ada Soal
+    if (questions.length === 0) {
+        return (
+            <SafeAreaView className="flex-1 justify-center items-center p-6">
+                <Text className="text-xl text-gray-500 text-center">Soal tidak ditemukan untuk level ini.</Text>
+                <TouchableOpacity onPress={() => router.back()} className="mt-4 bg-primary px-6 py-3 rounded-full">
+                    <Text className="text-white font-bold">Kembali</Text>
+                </TouchableOpacity>
+            </SafeAreaView>
+        );
+    }
+
+    const currentQuestion = questions[currentQuestionIndex];
+    const totalQuestions = questions.length;
+
     return (
         <SafeAreaView className="flex-1 bg-white">
             <Stack.Screen options={{ headerShown: false }} />
 
-            {/* Header Manual */}
             <View className="p-4 flex-row items-center">
                 <TouchableOpacity onPress={() => router.back()} className="p-2">
                     <Feather name="arrow-left" size={24} color="gray" />
                 </TouchableOpacity>
-                <SegmentedProgressBar current={currentQuestionIndex + 1} total={quiz.totalQuestions} />
+                <SegmentedProgressBar current={currentQuestionIndex + 1} total={totalQuestions} />
             </View>
 
-            {/* Question & Options */}
             <View className="flex-1 p-6 justify-between">
                 <View>
                     <Text className="text-3xl font-bold text-gray-800 text-center">{currentQuestion.question}</Text>
                 </View>
 
-                <View className="space-y-4 gap-4">
+                <View className="space-y-4">
                     {currentQuestion.options.map((option) => (
                         <TouchableOpacity
                             key={option}
                             onPress={() => handleSelectAnswer(option)}
                             disabled={isAnswerChecked}
-                            className={`p-4 rounded-2xl border-b-4
+                            className={`p-4 rounded-2xl border-b-4 
                                 ${
                                     isAnswerChecked
                                         ? option === currentQuestion.correctAnswer
@@ -124,9 +160,7 @@ export default function KartuKataQuiz({ params }: QuizPageProps) {
                 </View>
             </View>
 
-            {/* Footer: Check Button atau Feedback Panel */}
             {isAnswerChecked ? (
-                // Feedback Panel
                 <View className={`p-6 rounded-t-2xl ${isCorrect ? 'bg-green-100' : 'bg-red-100'}`}>
                     <Text className={`text-2xl font-bold ${isCorrect ? 'text-green-600' : 'text-red-600'}`}>
                         {isCorrect ? "Bagus!" : "Ups, jawaban salah"}
@@ -140,7 +174,6 @@ export default function KartuKataQuiz({ params }: QuizPageProps) {
                     </TouchableOpacity>
                 </View>
             ) : (
-                // Check Button
                 <View className="p-6">
                     <TouchableOpacity
                         onPress={handleCheckAnswer}
