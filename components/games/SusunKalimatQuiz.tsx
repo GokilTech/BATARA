@@ -107,7 +107,7 @@ export default function SusunKalimatQuiz({ params }: QuizPageProps) {
         if (currentQuestionIndex < questions.length - 1) {
             setCurrentQuestionIndex(currentQuestionIndex + 1);
         } else {
-            Alert.alert("Quiz Selesai!", "Kamu berhasil menyelesaikan semua soal!");
+            Alert.alert("Quiz Completed!, You're amazing, all questions have been answered!");
             router.back();
         }
     };

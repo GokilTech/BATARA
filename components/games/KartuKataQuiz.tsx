@@ -93,7 +93,7 @@ export default function KartuKataQuiz({ params }: QuizPageProps) {
             setIsAnswerChecked(false);
             setIsCorrect(false);
         } else {
-            Alert.alert("Quiz Selesai!", "Kamu hebat, semua soal sudah dijawab!");
+            Alert.alert("Quiz Completed!, You're amazing, all questions have been answered!");
             router.back();
         }
     };
