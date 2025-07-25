@@ -34,7 +34,7 @@ const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY;
 
 // --- CONTOH PROFIL KARAKTER (Ini akan datang dari halaman setup) ---
 const characterProfile = {
-  name: "Budi",
+  name: "Bara",
   age: 28,
   profession: "Software Engineer",
   province: "Jawa Tengah",
@@ -153,7 +153,7 @@ RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur in
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: `Cerita ${characterProfile.name}` }} />
+      <Stack.Screen options={{ title: `Bara Story` }} />
 
       {loading && !currentTurn ? (
         <ActivityIndicator size="large" style={styles.center} />
