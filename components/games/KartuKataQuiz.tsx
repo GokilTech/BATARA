@@ -2,7 +2,7 @@ import { View, Text, SafeAreaView, TouchableOpacity, ActivityIndicator, Alert } 
 import React, { useState, useEffect } from "react";
 import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
-import { supabase } from "@/lib/supabase"; // Pastikan path ini benar
+import { supabase } from "@/lib/supabase"; 
 
 // --- TIPE DATA (Sesuai isi JSONB di tabel 'questions') ---
 interface QuestionContent {
