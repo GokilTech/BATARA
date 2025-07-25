@@ -1,7 +1,7 @@
 // Lokasi: components/games/SusunKalimatQuiz.tsx
 import { View, Text, SafeAreaView, TouchableOpacity, Image } from "react-native";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 type ProgressBarProps = {
@@ -94,6 +94,7 @@ export default function SusunKalimatQuiz({ params }: QuizPageProps) {
 
     return (
         <SafeAreaView className="flex-1 bg-white">
+            <Stack.Screen options={{ headerShown: false }} />
             {/* Header Manual */}
             <View className="p-4 flex-row items-center">
                 <TouchableOpacity onPress={() => router.back()} className="p-2">
