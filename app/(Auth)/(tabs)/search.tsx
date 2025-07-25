@@ -33,6 +33,7 @@ interface LanguageStats {
     slug: string;
     progress: number;
     highest_level: number;
+    image_url: string
 }
 
 const categories: string[] = ["#Sunda", "#Javanese", "#Bali"];
@@ -147,7 +148,10 @@ export default function SearchPage() {
                             <Link href={`/language/${item.slug}`} asChild>
                                 <TouchableOpacity className="mr-4 items-center">
                                     <View className="w-24 h-24 rounded-2xl bg-gray-200 justify-center items-center">
-                                        <Feather name="image" size={32} color="gray" />
+                                        <Image
+                                            source={item.image_url ? { uri: item.image_url } : require("@/assets/images/avatar.png")}
+                                            className="w-24 h-24 rounded-lg"
+                                        />
                                     </View>
                                     <Text className="mt-2 font-semibold text-gray-800">{item.name}</Text>
                                 </TouchableOpacity>
