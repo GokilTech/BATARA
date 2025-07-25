@@ -8,39 +8,37 @@ import {
   Image,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 
-// --- TIPE DATA DARI RPC ---
+// --- TIPE DATA (Bisa dipindah ke file types/index.ts) ---
 interface GameModule {
   game_id: number;
   game_name: string;
   game_slug: string;
-  game_icon: string;
+  game_image_url: string | null; // URL gambar untuk kartu game
   total_lessons: number;
   lessons_completed: number;
   progress: number;
   highest_level_completed: number;
 }
-
 interface BahasaInfo {
   name: string;
   image_url: string | null;
 }
 
+// --- Komponen Bantu ---
 const ProgressBar = ({ progress }: { progress: number }) => (
-  <View style={styles.progressBarContainer}>
-    <View style={[styles.progressBarFill, { width: `${progress}%` }]} />
+  <View className="w-full bg-gray-200 rounded-full h-2 mt-2">
+    <View className="bg-blue-400 h-2 rounded-full" style={{ width: `${progress}%` }} />
   </View>
 );
 
 export default function LearningPage() {
   const { languageSlug } = useLocalSearchParams<{ languageSlug: string }>();
   const { session } = useAuth();
-
   const [bahasaInfo, setBahasaInfo] = useState<BahasaInfo | null>(null);
   const [gameModules, setGameModules] = useState<GameModule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,11 +48,9 @@ export default function LearningPage() {
       const fetchData = async () => {
         if (!session?.user || !languageSlug) return;
 
-        // <-- LOG TAMBAHAN 1 -->
-        console.log(`[DEBUG] Memulai fetch data untuk bahasa: ${languageSlug}`);
-
         setLoading(true);
         try {
+          // Ambil info bahasa
           const { data: bahasaData, error: bahasaError } = await supabase
             .from("bahasa")
             .select("name, image_url")
@@ -63,24 +59,16 @@ export default function LearningPage() {
           if (bahasaError) throw bahasaError;
           setBahasaInfo(bahasaData);
 
-          console.log("[DEBUG] Info bahasa yang didapat:", bahasaData);
-
-          // <-- LOG TAMBAHAN 2 -->
-          console.log("[DEBUG] Info bahasa yang didapat:", bahasaData);
-
+          // Ambil statistik game & progress user dari fungsi RPC
           const { data: modulesData, error: rpcError } = await supabase.rpc(
             "get_user_game_stats_for_bahasa",
             { p_user_id: session.user.id, p_bahasa_slug: languageSlug }
           );
           if (rpcError) throw rpcError;
-
-          // <-- LOG TAMBAHAN 3 (PALING PENTING) -->
-          console.log("[DEBUG] Modul game yang didapat dari RPC:", modulesData);
-
           setGameModules(modulesData || []);
+
         } catch (error) {
-          // <-- LOG TAMBAHAN 4 -->
-          console.error("[DEBUG] Terjadi error saat fetch data:", error);
+          console.error("Error fetching learning data:", error);
         } finally {
           setLoading(false);
         }
@@ -89,151 +77,105 @@ export default function LearningPage() {
     }, [languageSlug, session])
   );
 
-  // ... sisa kode tidak berubah ...
-
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.center]}>
-        <ActivityIndicator size="large" color="#27AE60" />
+      <SafeAreaView className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#3b82f6" />
       </SafeAreaView>
     );
   }
 
   if (!bahasaInfo) {
     return (
-      <SafeAreaView style={[styles.container, styles.center]}>
+      <SafeAreaView className="flex-1 justify-center items-center bg-white">
         <Stack.Screen options={{ title: "Not Found" }} />
-        <Text style={styles.notFoundText}>Language not found!</Text>
+        <Text className="text-xl text-gray-500">Language not found!</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Stack.Screen
-        options={{
-          title: `Learn ${bahasaInfo.name}`,
-          headerShadowVisible: false,
-        }}
-      />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Header Kustom (Sesuai Desain Baru) */}
+      <View className="flex-row items-center justify-between p-4">
+          <TouchableOpacity className="bg-white p-2 rounded-full shadow-sm">
+              <Feather name="arrow-left" size={24} color="black" />
+          </TouchableOpacity>
+          <TouchableOpacity className="bg-white p-2 rounded-full shadow-sm">
+              <Feather name="menu" size={24} color="black" />
+          </TouchableOpacity>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 24 }}>
+        {/* Gambar & Judul Bahasa */}
+        <View className="items-center px-6">
           <Image
             source={
               bahasaInfo.image_url
                 ? { uri: bahasaInfo.image_url }
-                : require("@/assets/images/sundanese_people.png") // Ganti dengan gambar default jika tidak ada
+                : require("@/assets/images/sundanese_people.png") // Gambar default
             }
-            style={styles.headerImage}
+            className="w-48 h-48"
             resizeMode="contain"
           />
-          <Text style={styles.headerTitle}>Learn {bahasaInfo.name}</Text>
+          <Text className="text-3xl font-bold text-gray-800 mt-4 text-center">
+            Learn {bahasaInfo.name}
+          </Text>
         </View>
 
-        <View style={styles.moduleList}>
+        {/* Daftar Game/Modul */}
+        <View className="px-6 mt-8 space-y-4">
           {gameModules.length > 0 ? (
             gameModules.map((module) => {
               const nextLevel = module.highest_level_completed + 1;
-              const isCompleted =
-                nextLevel > module.total_lessons && module.total_lessons > 0;
-
-              // --- INI DIA LOGIC ROUTING PINTARNYA ---
               let hrefConfig: Href;
 
               if (module.game_slug === 'ngobrol_ai') {
-                // JIKA game-nya adalah chatbot...
-                // Arahkan ke rumah chatbot
                 hrefConfig = {
-                  pathname: './chatbot/[languageSlug]',
+                  pathname: '/chatBot/[languageSlug]',
                   params: { languageSlug }
                 };
               } else {
-                // JIKA game-nya tipe lain (tebak_gambar, dll)...
-                // Arahkan ke rumah game biasa
                 hrefConfig = {
                   pathname: '/game/[languageSlug]/[gameSlug]/[level]',
                   params: { languageSlug, gameSlug: module.game_slug, level: nextLevel }
                 };
               }
 
-
               return (
-                <Link
-                  key={module.game_id}
-                  href={hrefConfig}
-                  asChild
-                >
-                  <TouchableOpacity style={styles.card}>
-                    <View style={styles.iconContainer}>
-                      <Feather
-                        name={module.game_icon as any}
-                        size={24}
-                        color={"#27AE60"}
+                <Link key={module.game_id} href={hrefConfig} asChild>
+                  <TouchableOpacity className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    <View className="p-4 flex-row justify-between items-center">
+                      <View className="flex-1 pr-4">
+                        <Text className="text-lg font-bold text-gray-800">{module.game_name}</Text>
+                        <Text className="text-sm text-gray-500 mt-1">LEVEL {nextLevel}</Text>
+                        <ProgressBar progress={module.progress} />
+                        <View className="flex-row items-center bg-blue-100/60 self-start px-4 py-2 rounded-full mt-4">
+                            <Text className="text-sm font-bold text-blue-500">Play Now</Text>
+                            <Feather name="play-circle" size={16} color="#3b82f6" className="ml-2" />
+                        </View>
+                      </View>
+                      
+                      <Image
+                        source={
+                            module.game_image_url
+                            ? { uri: module.game_image_url }
+                            : require("@/assets/images/avatar.png") // Placeholder
+                        }
+                        className="w-24 h-24 rounded-lg"
                       />
-                    </View>
-                    <View style={styles.cardContent}>
-                      <Text style={styles.cardTitle}>{module.game_name}</Text>
-                      <Text style={styles.cardSubtitle}>
-                        {isCompleted
-                          ? "All lessons completed!"
-                          : `Lesson ${module.lessons_completed} / ${module.total_lessons}`}
-                      </Text>
-                      <ProgressBar progress={module.progress} />
                     </View>
                   </TouchableOpacity>
                 </Link>
               );
             })
           ) : (
-            <Text style={styles.noGamesText}>
-              Belum ada game yang tersedia untuk bahasa ini.
-            </Text>
+            <Text className="text-center text-gray-500 mt-4">No games available for this language yet.</Text>
           )}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-// --- STYLES ---
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "white" },
-  center: { justifyContent: "center", alignItems: "center" },
-  notFoundText: { fontSize: 20, color: "#6B7280" },
-  header: { alignItems: "center", marginTop: 16, marginBottom: 24 },
-  headerImage: { width: 150, height: 150 },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginTop: 16,
-    color: "#111827",
-  },
-  moduleList: { paddingHorizontal: 24 },
-  card: {
-    backgroundColor: "#F9FAFB",
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  iconContainer: { backgroundColor: "#E0F2F1", padding: 12, borderRadius: 12 },
-  cardContent: { flex: 1, marginLeft: 16 },
-  cardTitle: { fontSize: 18, fontWeight: "600", color: "#1F2937" },
-  cardSubtitle: { fontSize: 14, color: "#6B7280", marginTop: 4 },
-  progressBarContainer: {
-    width: "100%",
-    backgroundColor: "#E5E7EB",
-    borderRadius: 999,
-    height: 8,
-    marginTop: 8,
-  },
-  progressBarFill: { backgroundColor: "#27AE60", height: 8, borderRadius: 999 },
-  noGamesText: {
-    textAlign: "center",
-    color: "#6B7280",
-    marginTop: 20,
-    fontSize: 16,
-  },
-});

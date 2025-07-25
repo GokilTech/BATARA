@@ -92,7 +92,7 @@ export default function TebakGambarQuiz({ params }: QuizPageProps) {
                     <Image source={currentQuestion.image} className="w-40 h-40 my-8" resizeMode="contain" />
                 </View>
 
-                <View className="space-y-4">
+                <View className="space-y-4 gap-4">
                     {currentQuestion.options.map((option) => (
                         <TouchableOpacity
                             key={option}
