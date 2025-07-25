@@ -14,9 +14,6 @@ import {
     View
 } from "react-native";
 
-
-
-
 type StepConfig = {
     title: string;
     value: string;
