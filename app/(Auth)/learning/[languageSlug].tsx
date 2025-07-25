@@ -52,7 +52,6 @@ export default function LearningPage() {
 
         setLoading(true);
         try {
-          // Ambil info bahasa
           const { data: bahasaData, error: bahasaError } = await supabase
             .from("bahasa")
             .select("name, image_url")
@@ -148,7 +147,7 @@ export default function LearningPage() {
 
               return (
                 <Link key={module.game_id} href={hrefConfig} asChild>
-                  <TouchableOpacity className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                  <TouchableOpacity className="bg-white rounded-2xl shadow-sm overflow-hidden" onPress={() => console.log(module)}>
                     <View className="p-4 flex-row justify-between items-center">
                       <View className="flex-1 pr-4">
                         <Text className="text-lg font-bold text-gray-800">{module.game_name}</Text>
