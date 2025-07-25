@@ -134,7 +134,7 @@ export default function KartuKataQuiz({ params }: QuizPageProps) {
                     <Text className="text-3xl font-bold text-gray-800 text-center">{currentQuestion.question}</Text>
                 </View>
 
-                <View className="space-y-4">
+                <View className="space-y-4 gap-4">
                     {currentQuestion.options.map((option) => (
                         <TouchableOpacity
                             key={option}
