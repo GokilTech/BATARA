@@ -1,199 +1,176 @@
 import { useAuth } from "@/context/AuthContext";
-import { supabase } from "@/lib/supabase";
 import { Stack, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
-// Tipe untuk setiap pesan dalam chat
-interface Message {
-  role: "user" | "assistant";
-  content: string;
+// --- TIPE DATA ---
+interface StoryTurn {
+  story: string;
+  question: string;
+  choices: { a: string; b: string; c: string };
 }
 
-// URL API dari server sementara Anda di Google Colab via ngrok
-const API_URL = "https://0626211a5fd5.ngrok-free.app/chat";
+// --- PENGATURAN OPENROUTER ---
+const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const OPENROUTER_API_KEY = process.env.EXPO_PUBLIC_OPENROUTER_API_KEY;
+// ... (variabel URL & Nama Situs Anda)
 
-export default function ChatPage() {
-  const { session } = useAuth();
+// --- CONTOH PROFIL KARAKTER (Ini akan datang dari halaman setup) ---
+const characterProfile = {
+  name: "Budi",
+  age: 28,
+  profession: "Software Engineer",
+  province: "Jawa Tengah",
+};
+
+export default function StoryGamePage() {
   const { languageSlug } = useLocalSearchParams<{ languageSlug: string }>();
+  const { session } = useAuth();
 
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [currentTurn, setCurrentTurn] = useState<StoryTurn | null>(null);
+  const [storyHistory, setStoryHistory] = useState<string[]>([]); // Untuk menyimpan pilihan
+  const [loading, setLoading] = useState(true);
 
-  const handleSend = useCallback(async () => {
-    if (!input.trim() || loading) return;
+  // Fungsi untuk memanggil AI
+  const getNextStoryTurn = useCallback(
+    async (lastChoice: string | null) => {
+      setLoading(true);
+      try {
+        const lastChoiceText = lastChoice
+          ? `Pilihan Terakhir Pengguna: "${lastChoice}"`
+          : "Ini adalah awal cerita.";
 
-    const userMessage: Message = { role: "user", content: input };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    const currentInput = input;
-    console.log("Sending message:", currentInput);
-    setInput("");
-    setLoading(true);
+        const prompt = `Anda adalah seorang penulis cerita interaktif untuk game belajar Bahasa ${languageSlug}. 
+Tugas Anda adalah melanjutkan cerita berdasarkan profil karakter dan pilihan terakhirnya.
+Cerita harus selalu mengandung unsur budaya dari provinsi ${characterProfile.province}.
 
-    try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Catatan: Header Authorization tidak diperlukan karena ini API publik sementara Anda
-        },
-        // PERUBAHAN 1: Body disesuaikan dengan yang diharapkan server FastAPI
-        body: JSON.stringify({
-          prompt: currentInput,
-        }),
-      });
+Profil Karakter:
+- Nama: ${characterProfile.name}
+- Usia: ${characterProfile.age}
+- Pekerjaan: ${characterProfile.profession}
+- Provinsi: ${characterProfile.province}
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API Error: ${response.status} - ${errorText}`);
+${lastChoiceText}
+
+Lanjutkan cerita dalam satu paragraf singkat. Setelah itu, buatlah sebuah pertanyaan pilihan ganda tentang cerita tersebut. Pertanyaan dan 3 pilihan jawaban (A, B, C) HARUS dalam Bahasa ${languageSlug}.
+
+RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur ini:
+{
+  "story": "Paragraf cerita dalam Bahasa Indonesia...",
+  "question": "Pertanyaan dalam Bahasa ${languageSlug}...",
+  "choices": {
+    "a": "Pilihan A dalam Bahasa ${languageSlug}",
+    "b": "Pilihan B dalam Bahasa ${languageSlug}",
+    "c": "Pilihan C dalam Bahasa ${languageSlug}"
+  }
+}`;
+
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "deepseek/deepseek-r1:free",
+            response_format: { type: "json_object" }, // Memaksa output JSON
+            messages: [{ role: "user", content: prompt }],
+          }),
+        });
+
+        if (!response.ok) throw new Error(await response.text());
+
+        const result = await response.json();
+        const aiResponse: StoryTurn = JSON.parse(
+          result.choices[0].message.content
+        );
+        setCurrentTurn(aiResponse);
+      } catch (error) {
+        console.error("Story Game Error:", error);
+        // Tampilkan pesan error di UI
+      } finally {
+        setLoading(false);
       }
+    },
+    [languageSlug]
+  );
 
-      const result = await response.json();
+  // Memulai game saat halaman pertama kali dimuat
+  useEffect(() => {
+    getNextStoryTurn(null); // Panggilan pertama, tidak ada pilihan sebelumnya
+  }, [getNextStoryTurn]);
 
-      // PERUBAHAN 2: Cara membaca balasan disesuaikan dengan output FastAPI
-      const aiMessageContent = result.response.trim();
-      const aiMessage: Message = {
-        role: "assistant",
-        content: aiMessageContent,
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+  const handleChoice = (choice: string) => {
+    if (!currentTurn) return;
+    // Simpan interaksi ke Supabase (disarankan)
+    // ... supabase.from('story_interactions').insert(...) ...
 
-      saveChatToSupabase(userMessage, aiMessage);
-    } catch (error) {
-      console.error("AI Chat Error:", error);
-      const errorMessage: Message = {
-        role: "assistant",
-        content:
-          "Maaf, terjadi kesalahan saat menghubungi AI. Pastikan server Colab Anda masih berjalan.",
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-    } finally {
-      setLoading(false);
-    }
-  }, [input, messages, loading]);
-
-  const saveChatToSupabase = async (userMsg: Message, aiMsg: Message) => {
-    if (!session?.user) return;
-    // Implementasi session_id unik bisa ditambahkan nanti
-    const sessionId = "sesi_unik_sementara";
-
-    await supabase.from("chat_history").insert([
-      {
-        user_id: session.user.id,
-        session_id: sessionId,
-        sender: "user",
-        message_text: userMsg.content,
-      },
-      {
-        user_id: session.user.id,
-        session_id: sessionId,
-        sender: "ai",
-        message_text: aiMsg.content,
-      },
-    ]);
+    // Lanjutkan cerita
+    setStoryHistory((prev) => [...prev, choice]);
+    getNextStoryTurn(choice);
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Stack.Screen options={{ title: `Ngobrol Bahasa ${languageSlug}` }} />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-        keyboardVerticalOffset={100}
-      >
-        <FlatList
-          data={messages}
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.messageBubble,
-                item.role === "user" ? styles.userBubble : styles.aiBubble,
-              ]}
-            >
-              <Text
-                style={item.role === "user" ? styles.userText : styles.aiText}
-              >
-                {item.content}
-              </Text>
+      <Stack.Screen options={{ title: `Cerita ${characterProfile.name}` }} />
+
+      {loading && !currentTurn ? (
+        <ActivityIndicator size="large" style={styles.center} />
+      ) : (
+        currentTurn && (
+          <View style={styles.content}>
+            <Text style={styles.storyText}>{currentTurn.story}</Text>
+            <View style={styles.divider} />
+            <Text style={styles.questionText}>{currentTurn.question}</Text>
+
+            <View style={styles.choicesContainer}>
+              {Object.values(currentTurn.choices).map((choice, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.choiceButton}
+                  onPress={() => handleChoice(choice)}
+                  disabled={loading}
+                >
+                  <Text style={styles.choiceText}>{choice}</Text>
+                </TouchableOpacity>
+              ))}
             </View>
-          )}
-          contentContainerStyle={styles.chatContainer}
-          inverted // Menampilkan chat dari bawah ke atas
-        />
-
-        {loading && <ActivityIndicator style={{ marginVertical: 10 }} />}
-
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            value={input}
-            onChangeText={setInput}
-            placeholder="Ketik pesanmu..."
-            editable={!loading}
-          />
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={handleSend}
-            disabled={loading}
-          >
-            <Text style={styles.sendButtonText}>Kirim</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+            {loading && <ActivityIndicator style={{ marginTop: 20 }} />}
+          </View>
+        )
+      )}
     </SafeAreaView>
   );
 }
 
+// --- STYLES ---
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F3F4F6" },
-  chatContainer: { padding: 10, flexDirection: "column-reverse" }, // Dibalik untuk properti inverted
-  messageBubble: {
-    padding: 12,
-    borderRadius: 18,
-    maxWidth: "80%",
-    marginBottom: 10,
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  content: { padding: 20, flex: 1 },
+  storyText: { fontSize: 18, lineHeight: 28, color: "#1F2937" },
+  divider: { height: 1, backgroundColor: "#E5E7EB", marginVertical: 20 },
+  questionText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+    textAlign: "center",
   },
-  userBubble: { backgroundColor: "#27AE60", alignSelf: "flex-end" },
-  aiBubble: { backgroundColor: "#FFFFFF", alignSelf: "flex-start" },
-  userText: { color: "white" },
-  aiText: { color: "black" },
-  inputContainer: {
-    flexDirection: "row",
-    padding: 10,
-    borderTopWidth: 1,
-    borderColor: "#E5E7EB",
+  choicesContainer: { marginTop: 20 },
+  choiceButton: {
     backgroundColor: "white",
-  },
-  input: {
-    flex: 1,
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#D1D5DB",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    backgroundColor: "#F9FAFB",
   },
-  sendButton: {
-    marginLeft: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#27AE60",
-    borderRadius: 20,
-    paddingHorizontal: 20,
-  },
-  sendButtonText: { color: "white", fontWeight: "bold" },
+  choiceText: { fontSize: 16, textAlign: "center", color: "#111827" },
 });

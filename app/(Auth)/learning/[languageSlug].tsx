@@ -1,17 +1,17 @@
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Feather } from "@expo/vector-icons";
-import { Link, Stack, useFocusEffect, useLocalSearchParams, Href, useRouter } from "expo-router";
+import { Href, Link, Stack, useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
+
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  BackHandler,
   Image,
   SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 // --- TIPE DATA (Bisa dipindah ke file types/index.ts) ---
