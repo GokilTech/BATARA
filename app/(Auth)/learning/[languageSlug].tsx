@@ -1,7 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { Feather } from "@expo/vector-icons";
-import { Link, Stack, useFocusEffect, useLocalSearchParams, Href } from "expo-router";
+import { Href, Link, Stack, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -144,7 +144,7 @@ export default function LearningPage() {
                 // JIKA game-nya adalah chatbot...
                 // Arahkan ke rumah chatbot
                 hrefConfig = {
-                  pathname: './chatbot/[languageSlug]',
+                  pathname: '../chatBot/[languageSlug]',
                   params: { languageSlug }
                 };
               } else {
