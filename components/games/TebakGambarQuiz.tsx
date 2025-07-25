@@ -1,7 +1,7 @@
 // Lokasi: components/games/TebakGambarQuiz.tsx
 import { View, Text, SafeAreaView, TouchableOpacity, Image } from "react-native";
 import React, { useState } from "react";
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 
 type ProgressBarProps = {
@@ -77,6 +77,7 @@ export default function TebakGambarQuiz({ params }: QuizPageProps) {
     
     return (
         <SafeAreaView className="flex-1 bg-white">
+            <Stack.Screen options={{ headerShown: false }} />
             <View className="p-4 flex-row items-center">
                 <TouchableOpacity onPress={() => router.back()} className="p-2">
                     <Feather name="arrow-left" size={24} color="gray" />
