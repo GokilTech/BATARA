@@ -134,7 +134,10 @@ RESPONS ANDA HARUS HANYA BERUPA OBJEK JSON, TANPA TEKS LAIN. Gunakan struktur in
               {Object.values(currentTurn.choices).map((choice, index) => (
                 <TouchableOpacity
                   key={index}
-                  style={styles.choiceButton}
+                  style={[
+                    styles.choiceButton,
+                    loading ? { opacity: 0.5 } : null,
+                  ]}
                   onPress={() => handleChoice(choice)}
                   disabled={loading}
                 >

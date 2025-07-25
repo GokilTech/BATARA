@@ -1,12 +1,12 @@
 // Lokasi: app/game/[languageSlug]/[gameSlug]/[level].tsx
+import { Stack, useLocalSearchParams } from 'expo-router';
 import React from 'react';
-import { View, Text } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { Text, View } from 'react-native';
 
 // Import semua komponen game lo
-import TebakGambarQuiz from '@/components/games/TebakGambarQuiz';
 import KartuKataQuiz from '@/components/games/KartuKataQuiz';
 import SusunKalimatQuiz from '@/components/games/SusunKalimatQuiz';
+import TebakGambarQuiz from '@/components/games/TebakGambarQuiz';
 
 export default function GameLevelPage() {
     const params = useLocalSearchParams<{ 
@@ -33,7 +33,7 @@ export default function GameLevelPage() {
 
     return (
         <View className="flex-1 justify-center items-center">
-            <Text>Game "{gameSlug}" not found.</Text>
+            <Text>Game {gameSlug} not found.</Text>
         </View>
     );
 }
