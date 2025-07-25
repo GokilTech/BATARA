@@ -24,6 +24,7 @@ export default function AuthLayout() {
                     ),
                 }}
             />
+            <Stack.Screen name="language/[languageSlug]" options={{ headerShown: false }} />
         </Stack>
     );
 }

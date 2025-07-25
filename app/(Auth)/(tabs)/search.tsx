@@ -9,7 +9,7 @@ import {
     Image
 } from "react-native";
 import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
-import { Stack, useFocusEffect } from "expo-router";
+import { Link, Stack, useFocusEffect } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuth } from "../../../context/AuthContext";
@@ -143,12 +143,15 @@ export default function SearchPage() {
                         contentContainerStyle={{ paddingHorizontal: 24 }}
                         keyExtractor={item => item.id.toString()}
                         renderItem={({ item }) => (
-                            <TouchableOpacity className="mr-4 items-center">
-                                <View className="w-24 h-24 rounded-2xl bg-gray-200 justify-center items-center">
-                                    <Feather name="image" size={32} color="gray" />
-                                </View>
-                                <Text className="mt-2 font-semibold text-gray-800">{item.name}</Text>
-                            </TouchableOpacity>
+                            // BUNGKUS DENGAN LINK 👇
+                            <Link href={`/language/${item.slug}`} asChild>
+                                <TouchableOpacity className="mr-4 items-center">
+                                    <View className="w-24 h-24 rounded-2xl bg-gray-200 justify-center items-center">
+                                        <Feather name="image" size={32} color="gray" />
+                                    </View>
+                                    <Text className="mt-2 font-semibold text-gray-800">{item.name}</Text>
+                                </TouchableOpacity>
+                            </Link>
                         )}
                     />
                 </View>

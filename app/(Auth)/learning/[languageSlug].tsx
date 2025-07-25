@@ -115,7 +115,7 @@ export default function LearningPage() {
         </View>
 
         {/* Daftar Lesson/Game (Sekarang dari data baru) */}
-        <View className="px-6 mt-8 space-y-4">
+        <View className="px-6 mt-8 space-y-4 gap-4 shadow-sm">
           {lessonModules.map((module) => {
               const hrefConfig: Href = {
                 pathname: '/game/[languageSlug]/[gameSlug]/[level]',
